@@ -40,3 +40,8 @@ The primary way to use `nix-cache-beacon` is via it's NixOS module.
   networking.firewall.allowedTCPPorts = [ 5000 ]; # Open firewall port for Harmonia
 }
 ```
+
+## License
+
+- The application is licensed under `GPL-3.0-or-later`
+- Nix expressions are licensed under `MIT`
