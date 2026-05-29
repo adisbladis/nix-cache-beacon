@@ -21,6 +21,7 @@
       );
 
       nixosModules = {
+        default = self.nixosModules.nix-cache-beacon;
         nix-cache-beacon = import ./nixos-module;
       };
 
