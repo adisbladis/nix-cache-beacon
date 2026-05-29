@@ -75,6 +75,12 @@ in
         type = lib.types.port;
         description = "Port number of the cache server to advertise.";
       };
+
+      hostname = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        description = "Hostname of the cache server to advertise.";
+        default = null;
+      };
     };
   };
 
@@ -136,7 +142,9 @@ in
             "network.target"
           ];
           serviceConfig = commonServiceConfig // {
-            ExecStart = "${lib.getExe cfg.package} advert --port ${toString cfg.advert.port}";
+            ExecStart = "${lib.getExe cfg.package} advert --port ${toString cfg.advert.port} ${
+              lib.optionalString (cfg.advert.hostname != null) "--hostname ${cfg.advert.hostname}"
+            }";
           };
         };
       })

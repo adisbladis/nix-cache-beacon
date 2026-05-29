@@ -22,9 +22,9 @@ func main() {
 				Usage: "Run the cache server",
 				Flags: []cli.Flag{
 					&cli.StringSliceFlag{
-						Name:    "listen",
-						Aliases: []string{"l"},
-						Usage:   "Address(es) to listen on (repeatable, e.g. --listen 0.0.0.0:8080)",
+						Name:     "listen",
+						Aliases:  []string{"l"},
+						Usage:    "Address(es) to listen on (repeatable, e.g. --listen 0.0.0.0:8080)",
 						Required: true,
 					},
 					&cli.PathFlag{
@@ -44,6 +44,10 @@ func main() {
 						Aliases:  []string{"p"},
 						Usage:    "Port number to advertise",
 						Required: true,
+					},
+					&cli.StringFlag{
+						Name:  "hostname",
+						Usage: "Hostname to advertise. Useful if you're relying on virtualhost for your cache. Default to the local machine hostname.",
 					},
 				},
 				Action: runAdvert,

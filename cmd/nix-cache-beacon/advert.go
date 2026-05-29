@@ -14,7 +14,14 @@ import (
 )
 
 func runAdvert(ctx *cli.Context) error {
-	domain := ctx.String("domain")
+	hostname := ctx.String("hostname")
+	if hostname == "" {
+		localHostname, err := os.Hostname()
+		if err != nil {
+			return err
+		}
+		hostname = localHostname
+	}
 	port := ctx.Int("port")
 
 	id, err := uuid.NewV4()
@@ -23,15 +30,20 @@ func runAdvert(ctx *cli.Context) error {
 	}
 	name := id.String()
 
-	svc := zeroconf.NewService(constants.ServiceType, name, uint16(port))
+	svc := zeroconf.Service{
+		Type:     constants.ServiceType,
+		Name:     name,
+		Port:     uint16(port),
+		Hostname: hostname,
+	}
 
-	server, err := zeroconf.New().Publish(svc).Open()
+	server, err := zeroconf.New().Publish(&svc).Open()
 	if err != nil {
 		return err
 	}
 	defer server.Close()
 
-	slog.Info("started", "id", name, "topic", constants.MDNS_SERVICE, "domain", domain, "port", port)
+	slog.Info("started", "id", name, "topic", constants.MDNS_SERVICE, "hostname", hostname, "port", port)
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
