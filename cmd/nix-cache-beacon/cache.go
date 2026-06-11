@@ -276,6 +276,16 @@ func runCache(cliCtx *cli.Context) (err error) {
 			return err
 		}
 		defer client.Close() // Don't forget to close, to notify others that we're going away
+
+		// Watch network interfaces for changes & reannounce on change
+		// Note: Only works on Linux because it uses netlink
+		go func() {
+			if err := watchInterfaces(ctx, func() {
+				client.Reload()
+			}); err != nil {
+				slog.Error("error watching interfaces", "error", err)
+			}
+		}()
 	}
 
 	// Wait for shutdown signal.
