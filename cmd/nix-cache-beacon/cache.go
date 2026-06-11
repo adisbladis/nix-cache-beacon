@@ -98,7 +98,7 @@ func findNarInfo(ctx context.Context, cfg *config.Config, cacheIndex *index.Cach
 						go cacheIndex.Evict(cache.URL, client)
 					}
 
-					slog.Error("got error for narinfo", "path", path, "cache", cache.URL)
+					slog.Error("got error for narinfo", "path", path, "cache", cache.URL, "error", err)
 					ch <- result{err: err}
 					return
 				}
