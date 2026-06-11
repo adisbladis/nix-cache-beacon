@@ -31,7 +31,7 @@
           pkgs = nixpkgs.legacyPackages.${system};
         in
         {
-          nixos = import ./nixos-module/test.nix { inherit pkgs; };
+          nixos = import ./nixos-module/test { inherit pkgs; };
         }
       );
 

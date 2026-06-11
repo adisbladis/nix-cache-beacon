@@ -12,6 +12,10 @@ pkgs.testers.nixosTest {
 
   nodes = {
     machine = {
+      imports = [
+        ../.
+      ];
+
       nix.settings.trusted-public-keys = [
         (builtins.readFile ./cache.pub)
       ];
