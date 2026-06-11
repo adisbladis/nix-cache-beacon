@@ -6,11 +6,14 @@ import (
 	"net/http"
 	"net/url"
 	"io"
+	"errors"
 
 	"github.com/nix-community/go-nix/pkg/narinfo"
 
 	cache_info "github.com/adisbladis/nix-cache-beacon/internal/cache_info"
 )
+
+var NotFoundError = errors.New("not found")
 
 type BinaryCache struct {
 	URL      string
@@ -62,6 +65,10 @@ func (c *BinaryCache) GetNarInfo(ctx context.Context, path string, client *http.
 		return nil, err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, NotFoundError
+	}
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("upstream returned %d", resp.StatusCode)

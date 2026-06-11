@@ -92,6 +92,11 @@ func findNarInfo(ctx context.Context, cfg *config.Config, cacheIndex *index.Cach
 
 				ninfo, err := cache.GetNarInfo(groupCtx, path, client)
 				if err != nil {
+					// Not found isn't a transport error
+					if err == index.NotFoundError {
+						return
+					}
+
 					// Evict cache on network failures
 					if _, ok := errors.AsType[net.Error](err); ok {
 						slog.Info("evicting", "URL", cache.URL)
