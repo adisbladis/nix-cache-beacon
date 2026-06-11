@@ -66,6 +66,14 @@ in
           Addresses for the cache server to listen on.
         '';
       };
+
+      verbose = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = ''
+          Enable debug logs.
+        '';
+      };
     };
 
     advert = {
@@ -129,7 +137,7 @@ in
                   addr: "--listen ${lib.escapeShellArg addr}"
                 ) cfg.cache.listenAddresses;
               in
-              "${lib.getExe cfg.package} cache ${listenArgs} --config ${configFile}";
+              "${lib.getExe cfg.package} cache ${listenArgs} --config ${configFile} ${lib.optionalString cfg.cache.verbose "--verbose"}";
           };
         };
       })

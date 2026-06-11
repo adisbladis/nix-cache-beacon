@@ -181,6 +181,10 @@ func runCache(cliCtx *cli.Context) (err error) {
 	if err != nil {
 		return err
 	}
+	verbose := cliCtx.Bool("verbose")
+	if verbose {
+		slog.SetLogLoggerLevel(slog.LevelDebug)
+	}
 
 	client := &http.Client{
 		Timeout: cfg.RequestTimeout,
@@ -236,7 +240,7 @@ func runCache(cliCtx *cli.Context) (err error) {
 
 				go func() {
 					cacheURL := fmt.Sprintf("http://%s", net.JoinHostPort(event.Hostname, fmt.Sprintf("%d", event.Port)))
-
+					slog.Debug("received event", "event", event.String())
 					switch event.Op {
 					case zeroconf.OpRemoved:
 						cacheIndex.Remove(cacheURL)
@@ -257,9 +261,11 @@ func runCache(cliCtx *cli.Context) (err error) {
 								slog.Warn("error retreiving nix-cache-info", "URL", cacheURL, "err", err)
 								return struct{}{}, nil
 							}
+							slog.Debug("got cache info", "cache", *cache, "cacheinfo", *cacheInfo)
 
 							cache.Priority = cacheInfo.Priority
 							slog.Info("adding", "URL", cache.URL, "priority", cache.Priority)
+							slog.Debug("add cache", "cache", *cache)
 							cacheIndex.Add(cache)
 							return struct{}{}, nil
 						}
@@ -278,9 +284,9 @@ func runCache(cliCtx *cli.Context) (err error) {
 		defer client.Close() // Don't forget to close, to notify others that we're going away
 
 		// Watch network interfaces for changes & reannounce on change
-		// Note: Only works on Linux because it uses netlink
 		go func() {
 			if err := watchInterfaces(ctx, func() {
+				slog.Debug("change in network interface, reload client")
 				client.Reload()
 			}); err != nil {
 				slog.Error("error watching interfaces", "error", err)

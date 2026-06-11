@@ -32,6 +32,11 @@ func main() {
 						Aliases: []string{"c"},
 						Usage:   "Path to a local config file",
 					},
+					&cli.BoolFlag{
+						Name:    "verbose",
+						Aliases: []string{"v"},
+						Usage:   "Print debug statements",
+					},
 				},
 				Action: runCache,
 			},
