@@ -108,8 +108,8 @@ func findNarInfo(ctx context.Context, cfg *config.Config, cacheIndex *index.Cach
 					return
 				}
 
-				// Check if signed by any known keys
-				{
+				// Check if signed by any known keys, or is a fixed output
+				if !strings.HasPrefix(ninfo.CA, "fixed:") {
 					fingerprint := ninfo.Fingerprint()
 
 					signed := false
