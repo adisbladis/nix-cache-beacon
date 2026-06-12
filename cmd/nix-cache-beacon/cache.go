@@ -259,7 +259,7 @@ func runCache(cliCtx *cli.Context) (err error) {
 							cacheInfo, err := cache.GetCacheInfo(ctx, client)
 							if err != nil {
 								slog.Warn("error retreiving nix-cache-info", "URL", cacheURL, "err", err)
-								return struct{}{}, nil
+								return struct{}{}, err
 							}
 							slog.Debug("got cache info", "cache", *cache, "cacheinfo", *cacheInfo)
 
