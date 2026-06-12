@@ -11,28 +11,14 @@ pkgs.testers.nixosTest {
   name = "nix-cache-beacon-test";
 
   nodes = {
-    machine = {
+    server = {
       imports = [
         ../.
       ];
 
-      # Resolve .local hostnames
-      networking.useNetworkd = true;
-      services.resolved = {
+      services.nix-cache-beacon.advert = {
         enable = true;
-        settings.Resolve.MulticastDNS = "resolve";
-      };
-
-      nix.settings.trusted-public-keys = [
-        (builtins.readFile ./cache.pub)
-      ];
-
-      services.nix-cache-beacon = {
-        cache.enable = true;
-        advert = {
-          enable = true;
-          port = 5000;
-        };
+        port = 5000;
       };
 
       services.harmonia.cache = {
@@ -45,23 +31,48 @@ pkgs.testers.nixosTest {
         testDrv
       ];
     };
+
+    client = {
+      imports = [
+        ../.
+      ];
+
+      # Resolve .local hostnames over mDNS
+      services.avahi = {
+        enable = true;
+        nssmdns4 = true;
+        ipv4 = true;
+        ipv6 = true;
+      };
+
+      nix.settings.trusted-public-keys = [
+        (builtins.readFile ./cache.pub)
+      ];
+
+      services.nix-cache-beacon.cache.enable = true;
+
+      networking.firewall.enable = false;
+    };
   };
 
   testScript = ''
     start_all()
 
-    machine.wait_for_unit("harmonia.socket")
-    machine.wait_for_unit("network.target")
+    server.wait_for_unit("harmonia.socket")
+    server.wait_for_unit("nix-cache-beacon-advert.service")
 
-    machine.wait_for_unit("nix-cache-beacon-advert.service")
+    client.wait_for_unit("nix-cache-beacon-cache.service")
 
     # Wait for client cache ready
-    machine.wait_until_succeeds("curl --fail localhost:5028/nix-cache-info")
+    client.wait_until_succeeds("curl --fail localhost:5028/nix-cache-info")
 
     # Wait for harmonia to be ready
-    machine.wait_until_succeeds("curl --fail localhost:5000/${storePrefix}.narinfo")
+    server.wait_until_succeeds("curl --fail localhost:5000/${storePrefix}.narinfo")
 
-    # Fetch from client cache
-    machine.wait_until_succeeds("curl --fail localhost:5028/${storePrefix}.narinfo")
+    # Cross-host mDNS hostname resolution
+    client.wait_until_succeeds("getent hosts server.local")
+
+    # Fetch narinfo from the server's cache, discovered via mDNS
+    client.wait_until_succeeds("curl --fail localhost:5028/${storePrefix}.narinfo")
   '';
 }
