@@ -4,7 +4,7 @@ buildGoModule {
   version = "0.1";
   src = lib.cleanSource ./.;
   vendorHash = "sha256-5Sf1DkeQJf+sesfoI/gKswVAnz7LBcuBXzspd9sPTZo=";
-  env.CGO_ENABLED = "0";
+  env.CGO_ENABLED = "1"; # Required for .local domain lookup via glibc NSS
   ldflags = [
     "-s"
     "-w"
