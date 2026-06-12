@@ -270,7 +270,11 @@ func runCache(cliCtx *cli.Context) (err error) {
 							return struct{}{}, nil
 						}
 
-						_, err = backoff.Retry(ctx, operation, backoff.WithBackOff(backoff.NewExponentialBackOff()))
+						_, err = backoff.Retry(ctx, operation,
+							backoff.WithBackOff(backoff.NewExponentialBackOff()),
+							// Note: 5 is arbitrary
+							backoff.WithMaxTries(5),
+						)
 						if err != nil {
 							panic(err)
 						}
