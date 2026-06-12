@@ -16,6 +16,13 @@ pkgs.testers.nixosTest {
         ../.
       ];
 
+      # Resolve .local hostnames
+      networking.useNetworkd = true;
+      services.resolved = {
+        enable = true;
+        settings.Resolve.MulticastDNS = "resolve";
+      };
+
       nix.settings.trusted-public-keys = [
         (builtins.readFile ./cache.pub)
       ];

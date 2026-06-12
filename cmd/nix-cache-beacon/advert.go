@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/betamos/zeroconf"
@@ -22,6 +23,13 @@ func runAdvert(ctx *cli.Context) error {
 		}
 		hostname = localHostname
 	}
+
+	// Qualify unqualified hostnames with the mDNS domain (e.g. "nixos" -> "nixos.local").
+	// Otherwise the advertised SRV target is not resolvable.
+	if !strings.Contains(hostname, ".") {
+		hostname += "." + constants.ServiceType.Domain
+	}
+
 	port := ctx.Int("port")
 
 	id, err := uuid.NewV4()
