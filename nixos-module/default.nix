@@ -11,7 +11,7 @@ let
   configFile = pkgs.writeText "nix-cache-beacon-config.json" (
     lib.generators.toJSON { } (
       {
-        keys = config.nix.settings.trusted-public-keys;
+        keys = lib.lists.unique config.nix.settings.trusted-public-keys;
       }
       // lib.optionalAttrs (cfg.cache.cacheInfo != { }) { inherit (cfg.cache) cacheInfo; }
       // lib.optionalAttrs (cfg.cache.timeout != null) { inherit (cfg.cache) timeout; }
