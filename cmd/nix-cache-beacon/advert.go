@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -14,8 +15,8 @@ import (
 	"github.com/adisbladis/nix-cache-beacon/internal/constants"
 )
 
-func runAdvert(ctx *cli.Context) error {
-	hostname := ctx.String("hostname")
+func runAdvert(cliCtx *cli.Context) error {
+	hostname := cliCtx.String("hostname")
 	if hostname == "" {
 		localHostname, err := os.Hostname()
 		if err != nil {
@@ -30,7 +31,7 @@ func runAdvert(ctx *cli.Context) error {
 		hostname += "." + constants.ServiceType.Domain
 	}
 
-	port := ctx.Int("port")
+	port := cliCtx.Int("port")
 
 	id, err := uuid.NewV4()
 	if err != nil {
@@ -53,9 +54,19 @@ func runAdvert(ctx *cli.Context) error {
 
 	slog.Info("started", "id", name, "topic", constants.MDNS_SERVICE, "hostname", hostname, "port", port)
 
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
-	<-sig
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
+	defer cancel()
+
+	go func() {
+		if err := watchInterfaces(ctx, func() {
+			slog.Debug("change in network interface, reload advert")
+			server.Reload()
+		}); err != nil {
+			slog.Error("error watching interfaces", "error", err)
+		}
+	}()
+
+	<-ctx.Done()
 
 	return nil
 }
